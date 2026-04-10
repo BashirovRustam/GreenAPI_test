@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Green API UI</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 30px;
+        }
+
+        .container {
+            display: flex;
+            gap: 30px;
+        }
+
+        .left {
+            width: 300px;
+        }
+
+        .right {
+            flex: 1;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 6px;
+            background: #e0e0e0;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #d0d0d0;
+        }
+
+        textarea {
+            height: 400px;
+            resize: none;
+        }
+
+        h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- ЛЕВАЯ ЧАСТЬ -->
+    <div class="left">
+
+        <input id="idInstance" placeholder="idInstance">
+        <input id="apiToken" placeholder="ApiTokenInstance">
+
+        <button onclick="getSettings()">getSettings</button>
+        <button onclick="getState()">getStateInstance</button>
+
+        <input id="chatId1" placeholder="77771234567@c.us">
+        <textarea id="message" placeholder="Hello world!"></textarea>
+
+        <button onclick="sendMessage()">sendMessage</button>
+
+        <input id="chatId2" placeholder="77771234567@c.us">
+        <input id="fileUrl" placeholder="https://example.com/file.jpg (должен начинаться с http:// или https://)">
+
+        <button onclick="sendFile()">sendFileByUrl</button>
+
+    </div>
+
+    <!-- ПРАВАЯ ЧАСТЬ -->
+    <div class="right">
+        <h3>Ответ:</h3>
+        <textarea id="response" readonly></textarea>
+    </div>
+
+</div>
+
+<script>
+const API = "http://localhost:8000";
+
+function getValues() {
+    return {
+        idInstance: document.getElementById('idInstance').value,
+        apiToken: document.getElementById('apiToken').value
+    }
+}
+
+function show(data) {
+    document.getElementById('response').value =
+        JSON.stringify(data, null, 2);
+}
+
+async function getSettings() {
+    try {
+        const { idInstance, apiToken } = getValues();
+        console.log("Calling getSettings with:", idInstance, apiToken);
+
+        const res = await fetch(`${API}/getSettings?idInstance=${idInstance}&apiToken=${apiToken}`);
+        console.log("Response status:", res.status);
+
+        const data = await res.json();
+        console.log("Response data:", data);
+
+        show(data);
+    } catch (error) {
+        console.error("Error in getSettings:", error);
+        show({ error: error.message });
+    }
+}
+
+async function getState() {
+    try {
+        const { idInstance, apiToken } = getValues();
+        console.log("Calling getState with:", idInstance, apiToken);
+
+        const res = await fetch(`${API}/getStateInstance?idInstance=${idInstance}&apiToken=${apiToken}`);
+        console.log("Response status:", res.status);
+
+        const data = await res.json();
+        console.log("Response data:", data);
+
+        show(data);
+    } catch (error) {
+        console.error("Error in getState:", error);
+        show({ error: error.message });
+    }
+}
+
+async function sendMessage() {
+    try {
+        const { idInstance, apiToken } = getValues();
+        const chatId = document.getElementById('chatId1').value;
+        const message = document.getElementById('message').value;
+
+        console.log("Calling sendMessage with:", idInstance, apiToken, chatId, message);
+
+        const res = await fetch(
+            `${API}/sendMessage?idInstance=${idInstance}&apiToken=${apiToken}&chatId=${chatId}&message=${message}`,
+            { method: "POST" }
+        );
+        console.log("Response status:", res.status);
+
+        const data = await res.json();
+        console.log("Response data:", data);
+
+        show(data);
+    } catch (error) {
+        console.error("Error in sendMessage:", error);
+        show({ error: error.message });
+    }
+}
+
+async function sendFile() {
+    try {
+        const { idInstance, apiToken } = getValues();
+        const chatId = document.getElementById('chatId2').value;
+        const fileUrl = document.getElementById('fileUrl').value;
+
+        if (!fileUrl.startsWith('http://') && !fileUrl.startsWith('https://')) {
+            show({ error: "URL должен начинаться с http:// или https://" });
+            return;
+        }
+
+        console.log("Calling sendFile with:", idInstance, apiToken, chatId, fileUrl);
+
+        const res = await fetch(
+            `${API}/sendFileByUrl?idInstance=${idInstance}&apiToken=${apiToken}&chatId=${chatId}&fileUrl=${fileUrl}`,
+            { method: "POST" }
+        );
+        console.log("Response status:", res.status);
+
+        const data = await res.json();
+        console.log("Response data:", data);
+
+        show(data);
+    } catch (error) {
+        console.error("Error in sendFile:", error);
+        show({ error: error.message });
+    }
+}
+</script>
+
+</body>
+</html>
